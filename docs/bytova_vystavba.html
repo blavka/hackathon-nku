@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"></meta>
+    <title>Merge of scitani_2011_hustota and obce_obce_p.shp - Google Fusion Tables</title>
+    <style>
+        /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+
+        #map {
+            height: 100%;
+        }
+        /* Optional: Makes the sample page fill the window. */
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #lista {
+            position: absolute;
+            top: 25px;
+            right: 0px;
+            background-color: white;
+            padding: 10px;
+        }
+
+        #lista li:hover {
+            cursor: pointer;
+        }
+
+        #lista .active {
+            font-weight: bold;
+            color: red;
+        }
+
+        #lista ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0px 0px 0px 5px;
+        }
+    </style>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+        crossorigin="anonymous"></script>
+
+    <script type="text/javascript" src="https://maps.google.com/maps/api/js?v=3&amp;libraries=visualization&amp;libraries=geometry"></script>
+
+    <script type="text/javascript">
+        if (window.location.protocol == "file:") {
+            alert('This script only works when loaded from a web server,' +
+                ' not from a file on your computer.');
+        }
+        function ftOnLoadClientApi() {
+            gapi.client.setApiKey('AIzaSyDdGvX8s0PZRQotO7NZGdxSi3_jkCsTEKk');
+        }
+    </script>
+    <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=ftOnLoadClientApi"></script>
+
+    <script type="text/javascript">
+        var map;
+        var layer = null;
+        var layers = {};
+        var timer = null;
+
+        function loadApi() {
+            gapi.client.load('fusiontables', 'v1', initialize);
+        }
+
+        function initialize() {
+            var mapDiv = document.getElementById('googft-mapCanvas');
+            mapDiv.style.width = '100%';
+            mapDiv.style.height = '100%';
+            map = new google.maps.Map(mapDiv, {
+                center: new google.maps.LatLng(49.65627955655293, 16.26255416746086),
+                zoom: 8,
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                scaleControl: true,
+            });
+
+            rok(2016);
+
+            $('#lista li').click(function lista_click() {
+                $('#lista li.active').removeClass('active');
+                $(this).addClass('active');
+                rok($(this).text());
+            });
+
+            $('#auto').click(function lista_click() {
+                if (this.checked) {
+                    timer = setInterval(function () {
+                        var active = $('#lista li.active');
+                        var li = active.next('li');
+                        if (li.length) {
+                            li.click();
+                        } else {
+                            $('#lista li:first').click();
+                        }
+                    }, 3000);
+
+                    for (var rok = 1997; rok < 2015; i++) {
+                        make_layer(rok);
+                    }
+                    
+                } else {
+                    clearInterval(timer);
+                }
+            });
+
+        }
+
+        function rok(rok) {
+            if (layer) layer.setMap(null);
+            layer = make_layer(rok)
+            layer.setMap(map);
+        }
+
+        function make_layer(rok) {
+            if (rok in layers) {
+                return layers[rok];
+            }
+
+            var layer = new google.maps.FusionTablesLayer({
+                query: {
+                    select: 'geometry',
+                    from: '100ldGC5grXBWWd9X15Ck_i3f8BWpZWea6rSEnF1B'
+                },
+                styles: [
+                    {
+                        polygonOptions: {
+                            fillColor: '#ffffff',
+                            fillOpacity: 1
+                        }
+                    },
+                    {
+                        where: 'byty_' + rok + '_norm > 0.02',
+                        polygonOptions: {
+                            fillColor: '#0000ff',
+                            fillOpacity: 0.3
+                        }
+                    },
+
+                    {
+                        where: 'byty_' + rok + '_norm > 0.05',
+                        polygonOptions: {
+                            fillColor: '#0000ff',
+                            fillOpacity: 0.6
+                        }
+                    },
+                    {
+
+                        where: 'byty_' + rok + '_norm > 1',
+                        polygonOptions: {
+                            fillColor: '#0000ff',
+                            fillOpacity: 0.8
+                        }
+                    },
+                ]
+            });
+
+            google.maps.event.addListener(layer, 'click', function (e) {
+                e.infoWindowHtml = '<b>' + e.row['name'].value + ' - ' + rok + "</b><br><b>" +
+                    e.row['byty_' + rok].value + ' dokon\u010den\xfdch byt\u016f</b>';
+                if (e.row['saldo_' + rok]) {
+                    e.infoWindowHtml += '<br><b>p\u0159\xedr\u016fstek ' + e.row['saldo_' + rok].value + ' obyvatel</b>';
+                }
+            });
+
+            layers[rok] = layer;
+
+            return layer;
+        }
+
+        google.maps.event.addDomListener(window, 'load', loadApi);
+    </script>
+</head>
+
+<body>
+    <div id="googft-mapCanvas"></div>
+
+    <div id="lista">
+        <input id="auto" type="checkbox" value="false"></input> Auto <br/>
+        <ul>
+            <li>1997</li>
+            <li>1998</li>
+            <li>1999</li>
+            <li>2000</li>
+            <li>2001</li>
+            <li>2002</li>
+            <li>2003</li>
+            <li>2004</li>
+            <li>2005</li>
+            <li>2006</li>
+            <li>2007</li>
+            <li>2008</li>
+            <li>2009</li>
+            <li>2010</li>
+            <li>2011</li>
+            <li>2012</li>
+            <li>2013</li>
+            <li>2014</li>
+            <li>2015</li>
+            <li class="active">2016</li>
+        </ul>
+    </div>
+
+</body>
+
+</html>
